@@ -3,6 +3,8 @@ import Search from './model/Search';
 import { elements, renderLoader, clearLoader } from './view/base';
 import * as searchView from './view/searchView';
 import Recipe from './model/Recipe';
+import { renderRecipe, clearRecipe, highlightSelectedRecipe } from './view/recipeView';
+import List from './model/List';
 
 
 /**
@@ -54,18 +56,56 @@ elements.pageButtons.addEventListener('click', e => {
 
 });
 
-// image_url: "http://forkify-api.herokuapp.com/images/best_pizza_dough_recipe1b20.jpg"
-// ingredients: (6) ["4 1/2 cups (20.25 ounces) unbleached high-gluten, bread, or all-purpose flour, chilled", "1 3/4 (.44 ounce) teaspoons salt", "1 teaspoon (.11 ounce) instant yeast", "1/4 cup (2 ounces) olive oil (optional)", "1 3/4 cups (14 ounces) water, ice cold (40F)", "Semolina flour OR cornmeal for dusting"]
-// publisher: "101 Cookbooks"
-// publisher_url: "http://www.101cookbooks.com"
-// recipe_id: "47746"
-// social_rank: 100
-// source_url: "http://www.101cookbooks.com/archives/001199.html"
-// title: "Best Pizza Dough Ever"
+/**
+ * Жорын контроллер
+ */
 
-const result = new Recipe('47746');
+const controlRecipe = async () => {
+    // 1) URL-ээс ID-г салгаж авна
+    const id = window.location.hash.replace('#','');
+    // URL дээр ID олдвол 
+    if(id){
+    // 2) Жорын модулийг үүсгэж өгнө.
+    state.recipe = new Recipe(id);
+    // 3) UI дэлгэцийг бэлтгэнэ
+    clearRecipe();
+    renderLoader(elements.recipeDiv);
+    highlightSelectedRecipe(id);
+    // 4) Жорыг татаж авчирна
+    await state.recipe.getRecipe();
+    // 5) Жорыг гүйцэтгэх хугацаа болон орцыг тооцоолно
+    state.recipe.calcTime();
+    state.recipe.calcHuniiToo();
+    // 6) Жороо дэлгэцэнд гаргана
+    clearLoader();
+    renderRecipe(state.recipe);
+    }
+    
+};
 
+// window.addEventListener('hashchange', controlRecipe);
+// window.addEventListener('load', controlRecipe);
 
-r.getRecipe();
+['hashchange', 'load'].forEach( e => window.addEventListener(e, controlRecipe));
 
+/**
+ * Найрлаганы контроллер
+ */
 
+ const controlList = () => {
+     // Найрлаганы моделийг үүсгэнэ
+     state.list = new List(state.recipe);
+
+     // Уг моделруу одоо харагдаж байгаа жорны бүх найрлагыг авч хийнэ
+     state.recipe.ingredients.forEach( n => {
+         state.list.addItem(n);
+     })
+
+ };
+
+ elements.recipeDiv.addEventListener('click', e => {
+    if(e.target.matches('.recipe__btn, .recipe__btn *'))
+    controlList();
+ }
+ 
+ );
