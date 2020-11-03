@@ -5,6 +5,8 @@ import * as searchView from './view/searchView';
 import Recipe from './model/Recipe';
 import { renderRecipe, clearRecipe, highlightSelectedRecipe } from './view/recipeView';
 import List from './model/List';
+import Like from './model/Like';
+import * as listView from './view/listView';
 
 
 /**
@@ -96,16 +98,68 @@ const controlRecipe = async () => {
      // Найрлаганы моделийг үүсгэнэ
      state.list = new List(state.recipe);
 
+     // Өмнө байсан найрлагыг дэлгэцээс зайлуулна.
+     listView.clearItems();
+
      // Уг моделруу одоо харагдаж байгаа жорны бүх найрлагыг авч хийнэ
      state.recipe.ingredients.forEach( n => {
-         state.list.addItem(n);
+         // Тухайн найрлагыг модель руу хийнэ
+        const item =  state.list.addItem(n);
+
+         // Тухайн найрлагыг дэлгэцэнд гаргана         
+         listView.renderItem(item);
      })
+
+    // state.list.forEach( el => listView.renderItem(el));
+
+    
 
  };
 
+ /**
+  * Like контроллер
+  */
+
+  const controlLike = () => {
+      // 1) Like-н моделийг үүсгэнэ.
+     if(!state.likes) state.likes = new Like();
+
+      // 2) Одоо харагдаж байгаа жорын ID-г олж авах
+        const currentRecipeId = state.recipe.id;
+      // 3) Энэ жорыг лайкласан эсэхийг шалгах
+      if(state.likes.isLiked(currentRecipeId)){
+          // 4) Лайкласан бол лайкийг нь болиулна.
+          state.likes.deleteLike(currentRecipeId);
+          console.log(state.likes);
+      } else {
+          // 5) Лайклаагүй бол лайкална.
+          state.likes.addLikes(currentRecipeId, state.recipe.title, state.recipe.publisher, state.recipe.image_url );
+          console.log(state.likes);
+
+      }
+     
+      
+    
+      
+
+  };
+
+ elements.shoppingList.addEventListener('click', e => {
+     const id = e.target.closest('.shopping__item').dataset.itemid;
+    // Олдсон ID-тай орцыг моделиос устгана
+    state.list.deleteItem(id);
+
+    // Дээрх ID-тай орцыг дэлгэцээс устгана
+    listView.deleteItem(id);
+ });
+
  elements.recipeDiv.addEventListener('click', e => {
-    if(e.target.matches('.recipe__btn, .recipe__btn *'))
+    if(e.target.matches('.recipe__btn, .recipe__btn *'))    
     controlList();
+    else {
+        if(e.target.matches('.recipe__love, .recipe__love *'))
+        controlLike();
+    }
+        
  }
- 
  );
