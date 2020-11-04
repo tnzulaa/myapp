@@ -6,6 +6,7 @@ import Recipe from './model/Recipe';
 import { renderRecipe, clearRecipe, highlightSelectedRecipe } from './view/recipeView';
 import List from './model/List';
 import Like from './model/Like';
+import * as likesView from './view/likesView';
 import * as listView from './view/listView';
 
 
@@ -65,6 +66,7 @@ elements.pageButtons.addEventListener('click', e => {
 const controlRecipe = async () => {
     // 1) URL-ээс ID-г салгаж авна
     const id = window.location.hash.replace('#','');
+    if(!state.likes) state.likes = new Like();
     // URL дээр ID олдвол 
     if(id){
     // 2) Жорын модулийг үүсгэж өгнө.
@@ -80,7 +82,7 @@ const controlRecipe = async () => {
     state.recipe.calcHuniiToo();
     // 6) Жороо дэлгэцэнд гаргана
     clearLoader();
-    renderRecipe(state.recipe);
+    renderRecipe(state.recipe, state.likes.isLiked(id));
     }
     
 };
@@ -130,11 +132,13 @@ const controlRecipe = async () => {
       if(state.likes.isLiked(currentRecipeId)){
           // 4) Лайкласан бол лайкийг нь болиулна.
           state.likes.deleteLike(currentRecipeId);
-          console.log(state.likes);
+          likesView.toggleLikeBtn(false);
+         
       } else {
           // 5) Лайклаагүй бол лайкална.
           state.likes.addLikes(currentRecipeId, state.recipe.title, state.recipe.publisher, state.recipe.image_url );
-          console.log(state.likes);
+          likesView.toggleLikeBtn(true);
+          
 
       }
      
